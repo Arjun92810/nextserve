@@ -112,13 +112,101 @@ Imagine you're building a real tennis club. You'd need architects, builders, and
 ### The Story of React: Our Building Blocks
 When we started building NextServe, we needed a way to create interactive web pages. That's when we discovered React. Think of React like LEGO blocks for websites. Just as you can build complex structures with LEGO by combining simple blocks, React lets us build complex websites by combining simple components.
 
+#### Components: Our Basic Building Blocks
 For example, when you look at our tennis court listing page, you're actually seeing many small React components working together:
 - A component for each court card
 - A component for the search bar
 - A component for the filter options
 - A component for the booking button
 
-The beauty of React is that once we build a component, we can reuse it anywhere. It's like having a perfect tennis court blueprint that we can use to build courts in different locations.
+The beauty of React is that once we build a component, we can reuse it anywhere. It's like having a perfect tennis court blueprint that we can use to build courts in different locations. For instance, our `CourtCard` component is used in multiple places:
+- On the home page to show featured courts
+- In search results to display matching courts
+- On user profiles to show favorite courts
+
+Each time we use it, we can customize it slightly - like changing the lighting on a tennis court for different times of day - by passing different properties to the component.
+
+#### Pages: Our Complete Tennis Courts
+While components are like individual pieces of equipment, pages are like complete tennis courts. Each page in NextServe is made up of multiple components working together. For example:
+- Our Home page combines components for featured courts, upcoming events, and community highlights
+- The Court Details page brings together components for court information, availability calendar, and booking form
+- The Profile page assembles components for user information, match history, and preferences
+
+Think of pages as complete tennis facilities, where components are the individual elements that make them functional and beautiful. The relationship between pages and components is like a tennis club's layout:
+- Pages are like different areas of the club (main entrance, courts, clubhouse)
+- Components are like the equipment and features in each area (scoreboards, benches, lighting)
+- Some components are shared across pages (like our navigation bar or footer)
+- Others are specific to certain pages (like the court booking calendar)
+
+For example, our Court Details page (`/courts/[id]`) is built using:
+1. A layout component that provides the page structure
+2. A court information component showing details and photos
+3. An availability calendar component for booking
+4. A reviews component showing user feedback
+5. A map component showing the court location
+
+### The Foundation: Node.js and Package Management
+Before we could start building with React, we needed a solid foundation. That's where Node.js comes in. Think of Node.js as the tennis club's infrastructure - it's the system that powers everything else.
+
+#### Node.js: Our Power System
+Node.js is like the electrical system of our tennis club:
+- It provides the power to run our development tools
+- It handles all the behind-the-scenes operations
+- It manages how different parts of our application communicate
+- It ensures everything runs smoothly and efficiently
+
+In NextServe, Node.js powers several crucial features:
+- Our server-side rendering, which makes pages load quickly
+- Our API routes that handle court bookings and user authentication
+- Our real-time updates for court availability
+- Our file upload system for court photos and user avatars
+
+For example, when a user books a court, Node.js:
+1. Receives the booking request
+2. Validates the court availability
+3. Updates the database
+4. Sends confirmation emails
+5. Updates the real-time availability display
+
+#### npm and npx: Our Supply Chain
+Just as a tennis club needs a system to manage its equipment and supplies, we use npm (Node Package Manager) and npx to manage our development tools:
+
+**npm** is like our club's inventory manager:
+- It keeps track of all the tools we need (packages)
+- It makes sure we have the right versions of everything
+- It helps us install new tools when we need them
+- It manages dependencies between different tools
+
+In NextServe, we use npm to manage many essential packages:
+- `@supabase/supabase-js` for our database and authentication
+- `@react-leaflet/core` for our interactive maps
+- `@headlessui/react` for our accessible UI components
+- `@tailwindcss/forms` for styling our forms
+- `date-fns` for handling dates and times
+
+For example, when we needed to add the map feature:
+```bash
+npm install @react-leaflet/core leaflet
+```
+This installed both the React wrapper for Leaflet and the core mapping library.
+
+**npx** is like our club's equipment rental system:
+- It lets us use tools without permanently installing them
+- It's perfect for one-time tasks or trying new tools
+- It ensures we're always using the latest version
+- It keeps our development environment clean
+
+We use npx for various development tasks:
+- Creating new pages: `npx create-next-app new-page`
+- Running development servers: `npx next dev`
+- Building for production: `npx next build`
+- Generating TypeScript types: `npx supabase gen types typescript`
+
+For example, when we needed to add a new court booking page:
+```bash
+npx create-next-app pages/courts/booking
+```
+This created a new page with all the necessary files and configurations.
 
 ### Next.js: The Smart Building System
 While React gave us our building blocks, we needed something more to make our website fast and efficient. That's where Next.js came in. Think of Next.js as a smart building system that:

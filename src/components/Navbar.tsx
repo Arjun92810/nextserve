@@ -36,12 +36,12 @@ function NavbarContent() {
   };
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-gradient-to-r from-[#c5d86d] via-[#b4c455] to-[#93a048] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
+              <Link href="/" className="text-2xl font-bold text-[#2d321c] hover:text-[#1a1e11] transition duration-300">
                 NextServe
               </Link>
             </div>
@@ -50,9 +50,9 @@ function NavbarContent() {
                 href="/partners"
                 className={`${
                   isActive('/partners')
-                    ? 'border-blue-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    ? 'border-[#2d321c] text-[#2d321c]'
+                    : 'border-transparent text-[#2d321c]/80 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition duration-300`}
               >
                 Partner
               </Link>
@@ -60,9 +60,9 @@ function NavbarContent() {
                 href="/coach"
                 className={`${
                   isActive('/coach')
-                    ? 'border-blue-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    ? 'border-[#2d321c] text-[#2d321c]'
+                    : 'border-transparent text-[#2d321c]/80 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition duration-300`}
               >
                 Coach
               </Link>
@@ -70,9 +70,9 @@ function NavbarContent() {
                 href="/court"
                 className={`${
                   isActive('/court')
-                    ? 'border-blue-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    ? 'border-[#2d321c] text-[#2d321c]'
+                    : 'border-transparent text-[#2d321c]/80 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition duration-300`}
               >
                 Court
               </Link>
@@ -80,9 +80,9 @@ function NavbarContent() {
                 href="/chat"
                 className={`${
                   isActive('/chat')
-                    ? 'border-blue-500 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    ? 'border-[#2d321c] text-[#2d321c]'
+                    : 'border-transparent text-[#2d321c]/80 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition duration-300`}
               >
                 Chat
               </Link>
@@ -90,11 +90,11 @@ function NavbarContent() {
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             {loading ? (
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+              <div className="h-8 w-8 rounded-full bg-[#2d321c]/20 animate-pulse"></div>
             ) : user ? (
               <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none">
-                  <UserCircleIcon className="h-8 w-8 text-gray-400 mr-1" />
+                <Menu.Button className="flex items-center text-sm font-medium text-[#2d321c] hover:text-[#1a1e11] focus:outline-none">
+                  <UserCircleIcon className="h-8 w-8 text-[#2d321c]/90 mr-1" />
                   <span className="mr-1">{user.email?.split('@')[0] || 'User'}</span>
                 </Menu.Button>
                 <Transition
@@ -106,14 +106,14 @@ function NavbarContent() {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                  <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-gradient-to-b from-[#c5d86d] to-[#b4c455] ring-1 ring-black/5 focus:outline-none z-10">
                     <Menu.Item>
                       {({ active }) => (
                         <a
                           href="/profile"
                           className={`${
-                            active ? 'bg-gray-100' : ''
-                          } block px-4 py-2 text-sm text-gray-700 cursor-pointer`}
+                            active ? 'bg-[#93a048]/20' : ''
+                          } block px-4 py-2 text-sm text-[#2d321c] cursor-pointer hover:text-[#1a1e11]`}
                         >
                           Your Profile
                         </a>
@@ -124,8 +124,8 @@ function NavbarContent() {
                         <a
                           href="/settings"
                           className={`${
-                            active ? 'bg-gray-100' : ''
-                          } block px-4 py-2 text-sm text-gray-700 cursor-pointer`}
+                            active ? 'bg-[#93a048]/20' : ''
+                          } block px-4 py-2 text-sm text-[#2d321c] cursor-pointer hover:text-[#1a1e11]`}
                         >
                           Settings
                         </a>
@@ -136,8 +136,8 @@ function NavbarContent() {
                         <button
                           onClick={handleSignOut}
                           className={`${
-                            active ? 'bg-gray-100' : ''
-                          } block w-full text-left px-4 py-2 text-sm text-gray-700 cursor-pointer`}
+                            active ? 'bg-[#93a048]/20' : ''
+                          } block w-full text-left px-4 py-2 text-sm text-[#2d321c] cursor-pointer hover:text-[#1a1e11]`}
                         >
                           Sign out
                         </button>
@@ -150,13 +150,13 @@ function NavbarContent() {
               <>
                 <Link
                   href="/login"
-                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-[#2d321c]/90 hover:text-[#2d321c] px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
+                  className="bg-[#93a048] text-white hover:bg-[#7a843c] px-4 py-2 rounded-md text-sm font-medium transition duration-300"
                 >
                   Sign Up
                 </Link>
@@ -166,7 +166,7 @@ function NavbarContent() {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2d321c]"
             >
               <span className="sr-only">Open main menu</span>
               {isOpen ? (
@@ -181,15 +181,15 @@ function NavbarContent() {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="sm:hidden">
+        <div className="sm:hidden bg-gradient-to-b from-[#c5d86d] to-[#b4c455]">
           <div className="pt-2 pb-3 space-y-1">
             <Link
               href="/partners"
               className={`${
                 isActive('/partners')
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                  ? 'bg-[#93a048]/20 border-[#2d321c] text-[#2d321c]'
+                  : 'border-transparent text-[#2d321c]/80 hover:bg-[#93a048]/20 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-300`}
             >
               Partner
             </Link>
@@ -197,9 +197,9 @@ function NavbarContent() {
               href="/coach"
               className={`${
                 isActive('/coach')
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                  ? 'bg-[#93a048]/20 border-[#2d321c] text-[#2d321c]'
+                  : 'border-transparent text-[#2d321c]/80 hover:bg-[#93a048]/20 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-300`}
             >
               Coach
             </Link>
@@ -207,9 +207,9 @@ function NavbarContent() {
               href="/court"
               className={`${
                 isActive('/court')
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                  ? 'bg-[#93a048]/20 border-[#2d321c] text-[#2d321c]'
+                  : 'border-transparent text-[#2d321c]/80 hover:bg-[#93a048]/20 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-300`}
             >
               Court
             </Link>
@@ -217,31 +217,31 @@ function NavbarContent() {
               href="/chat"
               className={`${
                 isActive('/chat')
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                  ? 'bg-[#93a048]/20 border-[#2d321c] text-[#2d321c]'
+                  : 'border-transparent text-[#2d321c]/80 hover:bg-[#93a048]/20 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-300`}
             >
               Chat
             </Link>
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-200">
+          <div className="pt-4 pb-3 border-t border-[#93a048]/20">
             {user ? (
               <div className="space-y-1">
                 <Link
                   href="/profile"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block px-4 py-2 text-base font-medium text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20"
                 >
                   Your Profile
                 </Link>
                 <Link
                   href="/settings"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block px-4 py-2 text-base font-medium text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20"
                 >
                   Settings
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20"
                 >
                   Sign out
                 </button>
@@ -250,13 +250,13 @@ function NavbarContent() {
               <div className="space-y-1">
                 <Link
                   href="/login"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block px-4 py-2 text-base font-medium text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block px-4 py-2 text-base font-medium text-[#2d321c]/80 hover:text-[#2d321c] hover:bg-[#93a048]/20"
                 >
                   Sign Up
                 </Link>

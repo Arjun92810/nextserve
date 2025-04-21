@@ -13,11 +13,11 @@ export default function Hero() {
           src="/background.png"
           alt="Tennis court background"
           fill
-          className="object-cover brightness-75"
+          className="object-cover brightness-110"
           priority
           quality={100}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/30" />
       </div>
 
       {/* Content */}
@@ -43,7 +43,7 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-2xl md:text-3xl text-white/90 mb-12 font-light tracking-wide"
             >
-              Play More, Connect More, Grow Together.
+              Connect. Play. Grow... <i>Together</i>
             </motion.p>
             <motion.div 
               initial={{ opacity: 0, y: 20 }}

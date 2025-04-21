@@ -2,7 +2,8 @@ import React, { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -15,8 +16,8 @@ function classNames(...classes: string[]) {
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -27,7 +28,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <div className="flex h-16 justify-between">
                 <div className="flex">
                   <div className="flex flex-shrink-0 items-center">
-                    <Link to="/" className="text-xl font-bold text-gray-900">
+                    <Link href="/" className="text-xl font-bold text-gray-900">
                       NextServe
                     </Link>
                   </div>
@@ -35,9 +36,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     {navigation.map((item) => (
                       <Link
                         key={item.name}
-                        to={item.href}
+                        href={item.href}
                         className={classNames(
-                          location.pathname === item.href
+                          pathname === item.href
                             ? 'border-indigo-500 text-gray-900'
                             : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                           'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
@@ -87,7 +88,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     </Menu>
                   ) : (
                     <button
-                      onClick={() => navigate('/login')}
+                      onClick={() => router.push('/login')}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       Sign in

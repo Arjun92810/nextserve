@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 // Define types for our data
 interface Group {
@@ -36,6 +38,7 @@ export default function ChatPage() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [newGroup, setNewGroup] = useState({ name: '', description: '' });
   const router = useRouter();
+  const { user } = useAuth();
 
   // Fetch groups and posts
   useEffect(() => {
@@ -44,33 +47,33 @@ export default function ChatPage() {
         setLoading(true);
         setError(null);
 
-        // First check if user is authenticated
-        const { data: { session }, error: authError } = await supabase.auth.getSession();
-        if (authError) throw authError;
-        if (!session?.user) {
-          router.push('/login');
-          return;
-        }
-
-        // Fetch groups where user is a member
-        const { data: membershipData, error: membershipError } = await supabase
-          .from('group_memberships')
-          .select('group_id')
-          .eq('user_id', session.user.id);
-
-        if (membershipError) throw membershipError;
-
-        const memberGroupIds = membershipData?.map(m => m.group_id) || [];
-        
-        // Fetch groups
+        // Fetch all groups
         const { data: groupsData, error: groupsError } = await supabase
           .from('groups')
           .select('*')
           .order('created_at', { ascending: false });
         
-        if (groupsError) throw groupsError;
+        if (groupsError) {
+          console.error('Error fetching groups:', groupsError);
+          throw groupsError;
+        }
 
-        // Mark groups where user is a member
+        // If user is logged in, fetch their memberships to mark groups they're part of
+        let memberGroupIds: string[] = [];
+        if (user) {
+          const { data: membershipData, error: membershipError } = await supabase
+            .from('group_memberships')
+            .select('group_id')
+            .eq('user_id', user.id);
+
+          if (membershipError) {
+            console.error('Error fetching memberships:', membershipError);
+            throw membershipError;
+          }
+          memberGroupIds = membershipData?.map(m => m.group_id) || [];
+        }
+
+        // Mark groups where user is a member (if logged in)
         const groupsWithMembership = (groupsData || []).map(group => ({
           ...group,
           is_member: memberGroupIds.includes(group.id)
@@ -78,30 +81,52 @@ export default function ChatPage() {
         
         setGroups(groupsWithMembership);
         
-        // If user is a member of any group, fetch posts for the first group they're a member of
-        const userGroups = groupsWithMembership.filter(g => g.is_member);
-        if (userGroups.length > 0) {
-          const firstGroup = userGroups[0];
+        // If there are groups, fetch posts for the first group
+        if (groupsWithMembership.length > 0) {
+          const firstGroup = groupsWithMembership[0];
           setSelectedGroup(firstGroup);
           
+          // First fetch posts
           const { data: postsData, error: postsError } = await supabase
             .from('posts')
-            .select('*, profiles:user_id(full_name, avatar_url)')
+            .select('*')
             .eq('group_id', firstGroup.id)
             .order('created_at', { ascending: false });
           
-          if (postsError) throw postsError;
-          
-          if (postsData) {
-            // Transform the data to match our Post interface
+          if (postsError) {
+            console.error('Error fetching posts:', postsError);
+            throw postsError;
+          }
+
+          if (postsData && postsData.length > 0) {
+            // Get unique user IDs from posts
+            const userIds = Array.from(new Set<string>(postsData.map(post => post.user_id)));
+            
+            // Fetch profiles for these users
+            const { data: profilesData, error: profilesError } = await supabase
+              .from('profiles')
+              .select('id, full_name, avatar_url')
+              .in('id', userIds);
+
+            if (profilesError) {
+              console.error('Error fetching profiles:', profilesError);
+            }
+
+            // Create a map of user profiles
+            const profileMap = (profilesData || []).reduce((acc, profile) => {
+              acc[profile.id] = profile;
+              return acc;
+            }, {} as Record<string, any>);
+
+            // Transform posts with user data
             const transformedPosts = postsData.map(post => ({
               id: post.id,
               group_id: post.group_id,
               user_id: post.user_id,
               content: post.content,
               created_at: post.created_at,
-              user_name: post.profiles?.full_name || 'Anonymous',
-              user_avatar: post.profiles?.avatar_url
+              user_name: profileMap[post.user_id]?.full_name || 'Anonymous',
+              user_avatar: profileMap[post.user_id]?.avatar_url
             }));
             
             setPosts(transformedPosts);
@@ -112,14 +137,14 @@ export default function ChatPage() {
         
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error('Detailed error:', err);
         setError('Failed to load groups and posts');
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [router]);
+  }, [user]);
 
   // Handle group selection
   const handleGroupSelect = async (group: Group) => {
@@ -128,52 +153,47 @@ export default function ChatPage() {
     setError(null);
     
     try {
-      if (!group.is_member) {
-        // Join the group
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
-          router.push('/login');
-          return;
-        }
-
-        const { error: joinError } = await supabase
-          .from('group_memberships')
-          .insert({
-            group_id: group.id,
-            user_id: session.user.id,
-            role: 'member'
-          });
-
-        if (joinError) throw joinError;
-
-        // Update local state to reflect membership
-        setGroups(prevGroups =>
-          prevGroups.map(g =>
-            g.id === group.id ? { ...g, is_member: true } : g
-          )
-        );
-        group.is_member = true;
-      }
-
-      // Fetch posts
+      // First fetch posts
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
-        .select('*, profiles:user_id(full_name, avatar_url)')
+        .select('*')
         .eq('group_id', group.id)
         .order('created_at', { ascending: false });
       
-      if (postsError) throw postsError;
-      
-      if (postsData) {
-        // Transform the data to match our Post interface
+      if (postsError) {
+        console.error('Error fetching posts:', postsError);
+        throw postsError;
+      }
+
+      if (postsData && postsData.length > 0) {
+        // Get unique user IDs from posts
+        const userIds = Array.from(new Set<string>(postsData.map(post => post.user_id)));
+        
+        // Fetch profiles for these users
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+        }
+
+        // Create a map of user profiles
+        const profileMap = (profilesData || []).reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {} as Record<string, any>);
+
+        // Transform posts with user data
         const transformedPosts = postsData.map(post => ({
           id: post.id,
           group_id: post.group_id,
           user_id: post.user_id,
           content: post.content,
           created_at: post.created_at,
-          user_name: post.profiles?.full_name || 'Anonymous',
-          user_avatar: post.profiles?.avatar_url
+          user_name: profileMap[post.user_id]?.full_name || 'Anonymous',
+          user_avatar: profileMap[post.user_id]?.avatar_url
         }));
         
         setPosts(transformedPosts);
@@ -189,26 +209,77 @@ export default function ChatPage() {
     }
   };
 
+  // Handle joining a group
+  const handleJoinGroup = async (group: Group) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const { error: joinError } = await supabase
+        .from('group_memberships')
+        .insert({
+          group_id: group.id,
+          user_id: user.id,
+          role: 'member'
+        });
+
+      if (joinError) throw joinError;
+
+      // Update local state to reflect membership
+      setGroups(prevGroups =>
+        prevGroups.map(g =>
+          g.id === group.id ? { ...g, is_member: true } : g
+        )
+      );
+      if (selectedGroup?.id === group.id) {
+        setSelectedGroup({ ...group, is_member: true });
+      }
+    } catch (err) {
+      console.error('Error joining group:', err);
+      setError('Failed to join group');
+    }
+  };
+
   // Handle creating a new post
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    
     if (!newPostContent.trim() || !selectedGroup) return;
     
     try {
-      // In a real app, you would save this to the database
-      // For demo purposes, we'll just add it to the state
-      const newPost: Post = {
-        id: Date.now().toString(),
-        group_id: selectedGroup.id,
-        user_id: 'current-user',
-        content: newPostContent,
-        created_at: new Date().toISOString(),
-        user_name: 'You'
-      };
-      
-      setPosts([newPost, ...posts]);
-      setNewPostContent('');
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .insert([{
+          group_id: selectedGroup.id,
+          user_id: user.id,
+          content: newPostContent.trim()
+        }])
+        .select('*, profiles:user_id(full_name, avatar_url)')
+        .single();
+
+      if (postError) throw postError;
+
+      if (postData) {
+        const newPost: Post = {
+          id: postData.id,
+          group_id: postData.group_id,
+          user_id: postData.user_id,
+          content: postData.content,
+          created_at: postData.created_at,
+          user_name: postData.profiles?.full_name || 'Anonymous',
+          user_avatar: postData.profiles?.avatar_url
+        };
+        
+        setPosts([newPost, ...posts]);
+        setNewPostContent('');
+      }
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to create post');
@@ -219,19 +290,16 @@ export default function ChatPage() {
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    
     if (!newGroup.name.trim()) return;
     
     try {
       setLoading(true);
       setError(null);
-
-      // Get current user session
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError) throw authError;
-      if (!session?.user) {
-        router.push('/login');
-        return;
-      }
 
       // Create new group
       const { data: groupData, error: groupError } = await supabase
@@ -239,16 +307,13 @@ export default function ChatPage() {
         .insert([{
           name: newGroup.name.trim(),
           description: newGroup.description.trim(),
-          created_by: session.user.id,
+          created_by: user.id,
           member_count: 1
         }])
         .select()
         .single();
 
-      if (groupError) {
-        console.error('Group creation error:', groupError);
-        throw groupError;
-      }
+      if (groupError) throw groupError;
 
       if (!groupData) {
         throw new Error('No data returned from group creation');
@@ -259,14 +324,11 @@ export default function ChatPage() {
         .from('group_memberships')
         .insert([{
           group_id: groupData.id,
-          user_id: session.user.id,
+          user_id: user.id,
           role: 'admin'
         }]);
 
-      if (membershipError) {
-        console.error('Membership creation error:', membershipError);
-        throw membershipError;
-      }
+      if (membershipError) throw membershipError;
 
       // Add new group to state
       const newGroupWithMembership = {
@@ -300,13 +362,22 @@ export default function ChatPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Groups</h1>
-        <button
-          onClick={() => setIsCreatingGroup(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Create Group
-        </button>
+        {user ? (
+          <button
+            onClick={() => setIsCreatingGroup(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Create Group
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Sign in to create groups
+          </Link>
+        )}
       </div>
 
       {/* Create Group Modal */}
@@ -379,7 +450,7 @@ export default function ChatPage() {
             </div>
           </div>
           
-          <h2 className="text-xl font-semibold mb-3">Suggested Groups</h2>
+          <h2 className="text-xl font-semibold mb-3">Groups</h2>
           
           {loading ? (
             <div className="text-center py-4">Loading groups...</div>
@@ -402,15 +473,22 @@ export default function ChatPage() {
                     <span className="text-sm text-gray-500">{group.member_count} members</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{group.description}</p>
-                  <button 
-                    className={`mt-2 px-3 py-1 text-sm rounded-full ${
-                      group.is_member 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    }`}
-                  >
-                    {group.is_member ? 'Joined' : 'Join'}
-                  </button>
+                  {user && !group.is_member && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleJoinGroup(group);
+                      }}
+                      className="mt-2 px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    >
+                      Join
+                    </button>
+                  )}
+                  {group.is_member && (
+                    <span className="mt-2 px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800 inline-block">
+                      Joined
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -426,25 +504,39 @@ export default function ChatPage() {
                 <p className="text-gray-600">{selectedGroup.description}</p>
               </div>
               
-              {/* Create Post Form */}
-              <form onSubmit={handleCreatePost} className="mb-6">
-                <textarea
-                  placeholder="Write a post..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                />
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    disabled={!newPostContent.trim()}
-                  >
-                    Post
-                  </button>
+              {/* Create Post Form - Only show if user is logged in and is a member */}
+              {user && selectedGroup.is_member && (
+                <form onSubmit={handleCreatePost} className="mb-6">
+                  <textarea
+                    placeholder="Write a post..."
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                    value={newPostContent}
+                    onChange={(e) => setNewPostContent(e.target.value)}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      disabled={!newPostContent.trim()}
+                    >
+                      Post
+                    </button>
+                  </div>
+                </form>
+              )}
+              
+              {/* Sign in prompt for non-logged in users */}
+              {!user && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
+                  <p className="text-gray-600">
+                    <Link href="/login" className="text-blue-600 hover:text-blue-700">
+                      Sign in
+                    </Link>
+                    {' '}to join the conversation and post messages
+                  </p>
                 </div>
-              </form>
+              )}
               
               {/* Posts List */}
               {loading ? (
@@ -477,14 +569,16 @@ export default function ChatPage() {
                         </div>
                       </div>
                       <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
-                      <div className="mt-2 flex space-x-4">
-                        <button className="text-sm text-gray-500 hover:text-blue-600">
-                          Like
-                        </button>
-                        <button className="text-sm text-gray-500 hover:text-blue-600">
-                          Comment
-                        </button>
-                      </div>
+                      {user && (
+                        <div className="mt-2 flex space-x-4">
+                          <button className="text-sm text-gray-500 hover:text-blue-600">
+                            Like
+                          </button>
+                          <button className="text-sm text-gray-500 hover:text-blue-600">
+                            Comment
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

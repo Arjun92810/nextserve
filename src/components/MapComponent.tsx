@@ -5,11 +5,9 @@ import { FilterState } from '@/types/filters';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 
-// Dynamically import react-leaflet components with no SSR
+// Dynamically import the Map component with no SSR
 const MapWithNoSSR = dynamic(
-  () => import('react-leaflet').then((mod) => {
-    return { default: mod.MapContainer };
-  }),
+  () => import('./Map'),
   { ssr: false }
 );
 
@@ -29,13 +27,9 @@ export default function MapComponent({
   return (
     <div style={{ height: '400px', width: '100%' }}>
       <MapWithNoSSR 
-        center={[51.505, -0.09]}
-        zoom={13}
-        scrollWheelZoom={false}
-        style={{ height: '100%' }}
-      >
-        {/* TileLayer and Marker components will be rendered client-side only */}
-      </MapWithNoSSR>
+        courts={courts}
+        onCourtSelect={onSelectCourt}
+      />
     </div>
   );
 } 

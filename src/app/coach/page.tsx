@@ -4,7 +4,40 @@ import { useState, useEffect } from 'react';
 import CoachCard from '@/components/CoachCard';
 import { useGoogleMapsScript, Libraries } from 'use-google-maps-script';
 import { MapPinIcon } from '@heroicons/react/24/solid';
-import type { } from '@types/google.maps';
+
+declare global {
+  interface Window {
+    google: {
+      maps: {
+        places: {
+          PlacesService: new (element: Element) => {
+            textSearch: (
+              request: {
+                query: string;
+                type: string;
+              },
+              callback: (
+                results: Array<{
+                  name?: string;
+                  photos?: Array<{ getUrl: () => string }>;
+                  rating?: number;
+                  user_ratings_total?: number;
+                  formatted_address?: string;
+                  opening_hours?: { isOpen: () => boolean };
+                  formatted_phone_number?: string;
+                }> | null,
+                status: 'OK' | string
+              ) => void
+            ) => void;
+          };
+          PlacesServiceStatus: {
+            OK: 'OK';
+          };
+        };
+      };
+    };
+  }
+}
 
 const libraries: Libraries = ['places'];
 
@@ -35,7 +68,7 @@ export default function CoachPage() {
     setError(null);
 
     try {
-      const service = new google.maps.places.PlacesService(
+      const service = new window.google.maps.places.PlacesService(
         document.createElement('div')
       );
 
@@ -43,19 +76,16 @@ export default function CoachPage() {
         `tennis coach ${location}` : 
         'tennis coach near me';
 
-      const request: google.maps.places.TextSearchRequest = {
+      const request = {
         query: searchQuery,
         type: 'business',
       };
 
       service.textSearch(
         request,
-        (
-          results: google.maps.places.PlaceResult[] | null,
-          status: google.maps.places.PlacesServiceStatus
-        ) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            const coachResults = results.map((result: google.maps.places.PlaceResult) => ({
+        (results, status) => {
+          if (status === 'OK' && results) {
+            const coachResults = results.map(result => ({
               name: result.name || 'Unknown Coach',
               photo: result.photos?.[0]?.getUrl() || '/default-coach.jpg',
               rating: result.rating || 0,

@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -8,6 +10,13 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -18,7 +27,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return null; // Router will handle the redirect
   }
 
   return <>{children}</>;

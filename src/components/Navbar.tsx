@@ -1,15 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useRef, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Bars3Icon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isActive = (path: string) => pathname === path;
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
 
   return (
     <nav className="bg-white shadow-lg">
@@ -75,18 +100,60 @@ export default function Navbar() {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
-            <Link
-              href="/login"
-              className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Sign Up
-            </Link>
+            {loading ? (
+              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+            ) : user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
+                >
+                  <UserCircleIcon className="h-8 w-8 text-gray-400 mr-1" />
+                  <span className="mr-1">{user.email?.split('@')[0] || 'User'}</span>
+                  <ChevronDownIcon className="h-4 w-4" />
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Your Profile
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
           <div className="flex items-center sm:hidden">
             <button
@@ -105,76 +172,116 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`${isOpen ? 'block' : 'hidden'} sm:hidden`}>
-        <div className="pt-2 pb-3 space-y-1">
-          <Link
-            href="/"
-            className={`${
-              isActive('/')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-          >
-            Home
-          </Link>
-          <Link
-            href="/partners"
-            className={`${
-              isActive('/partners')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-          >
-            Partner
-          </Link>
-          <Link
-            href="/coach"
-            className={`${
-              isActive('/coach')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-          >
-            Coach
-          </Link>
-          <Link
-            href="/court"
-            className={`${
-              isActive('/court')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-          >
-            Court
-          </Link>
-          <Link
-            href="/chat"
-            className={`${
-              isActive('/chat')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-          >
-            Chat
-          </Link>
-        </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
-          <div className="space-y-1">
+      {isOpen && (
+        <div className="sm:hidden">
+          <div className="pt-2 pb-3 space-y-1">
             <Link
-              href="/login"
-              className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              href="/"
+              className={`${
+                isActive('/')
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             >
-              Sign In
+              Home
             </Link>
             <Link
-              href="/signup"
-              className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              href="/partners"
+              className={`${
+                isActive('/partners')
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
             >
-              Sign Up
+              Partner
+            </Link>
+            <Link
+              href="/coach"
+              className={`${
+                isActive('/coach')
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
+              Coach
+            </Link>
+            <Link
+              href="/court"
+              className={`${
+                isActive('/court')
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
+              Court
+            </Link>
+            <Link
+              href="/chat"
+              className={`${
+                isActive('/chat')
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
+              Chat
             </Link>
           </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            {loading ? (
+              <div className="px-4 py-2">
+                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+              </div>
+            ) : user ? (
+              <div className="px-4 py-2">
+                <div className="flex items-center">
+                  <UserCircleIcon className="h-10 w-10 text-gray-400 mr-3" />
+                  <div>
+                    <div className="text-base font-medium text-gray-800">
+                      {user.email?.split('@')[0] || 'User'}
+                    </div>
+                    <div className="text-sm font-medium text-gray-500">{user.email}</div>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    Your Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <Link
+                  href="/login"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }

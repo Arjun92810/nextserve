@@ -1,12 +1,26 @@
 'use client';
 
-import NoSSR from '@/components/NoSSR';
+import { useEffect, useState } from 'react';
 import LoginForm from '@/components/LoginForm';
 
 export default function LoginPage() {
-  return (
-    <NoSSR>
-      <LoginForm />
-    </NoSSR>
-  );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Loading...
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  return <LoginForm />;
 } 

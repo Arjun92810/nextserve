@@ -369,23 +369,6 @@ Think of Git like managing different versions of our tennis club:
    git commit      # Record the changes
    ```
 
-3. **Branches (Different Plans)**
-   - Like having different proposals for club improvements
-   - Main branch is like the current club setup
-   - Feature branches are like trying new ideas
-   ```bash
-   git branch      # Create a new plan
-   git checkout    # Switch between plans
-   ```
-
-4. **Merging (Combining Plans)**
-   - Like implementing approved changes to the club
-   - Combines different versions of code
-   - Resolves conflicts when changes overlap
-   ```bash
-   git merge       # Combine different versions
-   git pull        # Get updates from others
-   ```
 
 #### Common Git Workflows
 Just as the tennis club has procedures for different activities, we have standard Git practices:
@@ -419,24 +402,6 @@ Just as the tennis club has procedures for different activities, we have standar
    # Review changes
    # Approve and merge
    ```
-
-#### Best Practices
-Just as the tennis club has rules, Git has best practices:
-
-1. **Commit Messages**
-   - Write clear, descriptive messages
-   - Explain why changes were made
-   - Make it easy for others to understand
-
-2. **Regular Updates**
-   - Keep your local copy up to date
-   - Pull changes frequently
-   - Resolve conflicts promptly
-
-3. **Branch Management**
-   - Create branches for new features
-   - Delete branches after merging
-   - Keep the repository organized
 
 #### Why Git is Important
 Git is essential because it:

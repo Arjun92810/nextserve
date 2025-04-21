@@ -10,7 +10,7 @@ export default function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/hero-tennis.jpg"
+          src="/background.png"
           alt="Tennis court background"
           fill
           className="object-cover brightness-75"

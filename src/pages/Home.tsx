@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -23,17 +23,17 @@ export default function Home() {
         <nav className="relative z-10 py-4">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-between">
-              <Link to="/" className="text-2xl font-bold text-black no-underline">
+              <Link href="/" className="text-2xl font-bold text-black no-underline">
                 NextServe
               </Link>
               <div className="flex items-center gap-6">
-                <Link to="/dashboard" className="text-black no-underline hover:text-gray-700">
+                <Link href="/dashboard" className="text-black no-underline hover:text-gray-700">
                   Dashboard
                 </Link>
-                <Link to="/profile" className="text-black no-underline hover:text-gray-700">
+                <Link href="/profile" className="text-black no-underline hover:text-gray-700">
                   Profile
                 </Link>
-                <Link to="/sign-in" className="text-black no-underline hover:text-gray-700">
+                <Link href="/login" className="text-black no-underline hover:text-gray-700">
                   Sign in
                 </Link>
               </div>
@@ -51,7 +51,7 @@ export default function Home() {
               Play More, Connect More, Grow Together.
             </p>
             <Link
-              to="/get-started"
+              href="/get-started"
               className="text-black no-underline hover:text-gray-700"
             >
               Get Started

@@ -338,6 +338,116 @@ Building NextServe was like constructing a modern tennis club:
 
 Each piece works together to create a seamless experience for our users, just like how a well-designed tennis club brings together courts, equipment, and community.
 
+### Version Control with Git: The Club's History Book
+*Think of this as the record-keeping system of our tennis club*
+
+#### What is Version Control?
+Just as a tennis club keeps records of matches, member histories, and facility changes, software projects need to track changes in code. Git is like a smart history book that:
+- Records every change made to our code
+- Remembers who made each change and why
+- Allows us to go back in time to previous versions
+- Helps multiple people work together without conflicts
+
+#### How Git Works
+Think of Git like managing different versions of our tennis club:
+
+1. **Repository (The Club's Records)**
+   - Like a filing cabinet for all our club's documents
+   - Stores all code files and their complete history
+   - Tracks who made what changes and when
+   ```bash
+   git init        # Start tracking a new project
+   git clone       # Copy an existing project
+   ```
+
+2. **Commits (Daily Records)**
+   - Like entries in the club's logbook
+   - Each commit is a snapshot of changes
+   - Includes a message explaining what changed
+   ```bash
+   git add .       # Prepare changes for recording
+   git commit      # Record the changes
+   ```
+
+3. **Branches (Different Plans)**
+   - Like having different proposals for club improvements
+   - Main branch is like the current club setup
+   - Feature branches are like trying new ideas
+   ```bash
+   git branch      # Create a new plan
+   git checkout    # Switch between plans
+   ```
+
+4. **Merging (Combining Plans)**
+   - Like implementing approved changes to the club
+   - Combines different versions of code
+   - Resolves conflicts when changes overlap
+   ```bash
+   git merge       # Combine different versions
+   git pull        # Get updates from others
+   ```
+
+#### Common Git Workflows
+Just as the tennis club has procedures for different activities, we have standard Git practices:
+
+1. **Feature Development**
+   - Create a new branch for each feature
+   - Make changes and test thoroughly
+   - Merge back when everything works
+   ```bash
+   git checkout -b new-feature
+   # Make changes
+   git commit -m "Added new feature"
+   git push origin new-feature
+   ```
+
+2. **Collaboration**
+   - Like coordinating with other club staff
+   - Share changes with team members
+   - Get updates from others
+   ```bash
+   git pull        # Get latest changes
+   git push        # Share your changes
+   ```
+
+3. **Code Review**
+   - Like getting approval for club changes
+   - Team members review changes
+   - Suggest improvements before merging
+   ```bash
+   # Create a pull request
+   # Review changes
+   # Approve and merge
+   ```
+
+#### Best Practices
+Just as the tennis club has rules, Git has best practices:
+
+1. **Commit Messages**
+   - Write clear, descriptive messages
+   - Explain why changes were made
+   - Make it easy for others to understand
+
+2. **Regular Updates**
+   - Keep your local copy up to date
+   - Pull changes frequently
+   - Resolve conflicts promptly
+
+3. **Branch Management**
+   - Create branches for new features
+   - Delete branches after merging
+   - Keep the repository organized
+
+#### Why Git is Important
+Git is essential because it:
+- Enables team collaboration
+- Tracks project history
+- Prevents loss of work
+- Makes experimentation safe
+- Facilitates code review
+
+*Understanding Git is crucial for any software developer, just like understanding scheduling and record-keeping is essential for running a tennis club. It's a fundamental skill that you'll use throughout your career in technology.*
+
 ## The Journey Continues
 
 Building NextServe taught us that web development is like building a city:

@@ -1,280 +1,341 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import type { Profile } from '@/types/profile';
-import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 
-type NotificationType = {
-  type: 'success' | 'error';
-  message: string;
-} | null;
+type Profile = {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+  website: string;
+  updated_at: string;
+  play_style: string;
+  availability: string;
+  preferred_format: string;
+  preferred_surface: string;
+  school: string;
+};
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  const [notification, setNotification] = useState<NotificationType>(null);
+  const { user, loading } = useAuth();
   const [profile, setProfile] = useState<Partial<Profile>>({
     full_name: '',
-    availability: '',
+    website: '',
     play_style: '',
-    skill_level: '',
-    play_format: '',
-    experience_years: null,
+    availability: '',
+    preferred_format: '',
     preferred_surface: '',
-    bio: '',
+    school: '',
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const router = useRouter();
 
+  // Fetch profile data
   useEffect(() => {
-    // Check if user is authenticated
-    const checkUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-        setUser(user);
+    if (!loading && !user) {
+      router.push('/login');
+      return;
+    }
 
-        // Fetch existing profile if it exists
+    async function getProfile() {
+      try {
+        setIsLoading(true);
+        if (!user?.id) {
+          throw new Error('User ID not found');
+        }
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching profile:', error);
-          setNotification({
-            type: 'error',
-            message: 'Error loading profile. Please refresh the page.'
+        if (error) {
+          // If profile doesn't exist, create a new one
+          if (error.code === 'PGRST116') {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert([
+                { 
+                  id: user.id,
+                  full_name: '',
+                  website: '',
+                  play_style: '',
+                  availability: '',
+                  preferred_format: '',
+                  preferred_surface: '',
+                  school: '',
+                  updated_at: new Date().toISOString()
+                }
+              ])
+              .select()
+              .single();
+              
+            if (createError) throw createError;
+            if (newProfile) {
+              setProfile({
+                full_name: newProfile.full_name || '',
+                website: newProfile.website || '',
+                play_style: newProfile.play_style || '',
+                availability: newProfile.availability || '',
+                preferred_format: newProfile.preferred_format || '',
+                preferred_surface: newProfile.preferred_surface || '',
+                school: newProfile.school || '',
+              });
+            }
+          } else {
+            throw error;
+          }
+        } else if (data) {
+          setProfile({
+            full_name: data.full_name || '',
+            website: data.website || '',
+            play_style: data.play_style || '',
+            availability: data.availability || '',
+            preferred_format: data.preferred_format || '',
+            preferred_surface: data.preferred_surface || '',
+            school: data.school || '',
           });
         }
-
-        if (data) {
-          setProfile(data);
-        }
-      } catch (err: any) {
-        console.error('Error:', err);
-        setNotification({
-          type: 'error',
-          message: 'Error loading profile. Please refresh the page.'
-        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
-    };
+    }
 
-    checkUser();
-  }, [router]);
+    if (user) {
+      getProfile();
+    }
+  }, [user, loading, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setNotification(null);
-
+  const handleSave = async () => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      return;
+    }
+    
+    setIsSaving(true);
+    setError(null);
+    
     try {
-      if (!user) throw new Error('No user found');
-
-      const profileData = {
-        id: user.id,
-        full_name: profile.full_name,
-        availability: profile.availability,
-        play_style: profile.play_style,
-        skill_level: profile.skill_level,
-        play_format: profile.play_format,
-        experience_years: profile.experience_years,
-        preferred_surface: profile.preferred_surface,
-        bio: profile.bio,
-      };
-
       const { error } = await supabase
         .from('profiles')
-        .upsert(profileData);
+        .upsert({
+          id: user.id,
+          full_name: profile?.full_name?.trim() || '',
+          website: profile?.website?.trim() || '',
+          play_style: profile?.play_style?.trim() || '',
+          availability: profile?.availability?.trim() || '',
+          preferred_format: profile?.preferred_format?.trim() || '',
+          preferred_surface: profile?.preferred_surface?.trim() || '',
+          school: profile?.school?.trim() || '',
+          updated_at: new Date().toISOString(),
+        });
 
       if (error) throw error;
-
-      setNotification({
-        type: 'success',
-        message: 'Profile updated successfully!'
-      });
-    } catch (err: any) {
-      console.error('Error updating profile:', err);
-      setNotification({
-        type: 'error',
-        message: 'Error updating profile. Please try again.'
-      });
+      setSuccess('Profile updated successfully');
+      setHasUnsavedChanges(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({
       ...prev,
       [name]: value
     }));
+    setHasUnsavedChanges(true);
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <div className="text-center">
+          <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse mx-auto"></div>
+          <p className="mt-2 text-gray-500">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Your Tennis Profile
-            </h3>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-4 py-5 sm:px-6 bg-blue-600">
+            <h3 className="text-lg leading-6 font-medium text-white">Profile</h3>
+            <p className="mt-1 max-w-2xl text-sm text-blue-100">
+              Update your profile information
+            </p>
+          </div>
 
-            {notification && (
-              <div className={`mt-4 p-4 rounded-md ${
-                notification.type === 'success' 
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                {notification.message}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            <div className="mt-5">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="full_name"
-                    id="full_name"
-                    value={profile.full_name || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
+          {success && (
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">{success}</p>
                 </div>
+              </div>
+            </div>
+          )}
 
-                <div>
-                  <label htmlFor="skill_level" className="block text-sm font-medium text-gray-700">
-                    Skill Level
-                  </label>
-                  <select
-                    id="skill_level"
-                    name="skill_level"
-                    value={profile.skill_level || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Select level</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
+          <div className="space-y-6 p-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={user?.email || ''}
+                readOnly
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50 text-gray-700 sm:text-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">Your email cannot be changed</p>
+            </div>
 
-                <div>
-                  <label htmlFor="play_style" className="block text-sm font-medium text-gray-700">
-                    Play Style
-                  </label>
-                  <select
-                    id="play_style"
-                    name="play_style"
-                    value={profile.play_style || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Select style</option>
-                    <option value="Aggressive Baseliner">Aggressive Baseliner</option>
-                    <option value="Counter Puncher">Counter Puncher</option>
-                    <option value="Serve and Volley">Serve and Volley</option>
-                    <option value="All Court">All Court</option>
-                  </select>
-                </div>
+            <div>
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="full_name"
+                id="full_name"
+                value={profile.full_name}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="play_format" className="block text-sm font-medium text-gray-700">
-                    Preferred Format
-                  </label>
-                  <select
-                    id="play_format"
-                    name="play_format"
-                    value={profile.play_format || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Select format</option>
-                    <option value="Singles">Singles</option>
-                    <option value="Doubles">Doubles</option>
-                    <option value="Both">Both</option>
-                  </select>
-                </div>
+            <div>
+              <label htmlFor="website" className="block text-sm font-medium text-gray-700">
+                Website
+              </label>
+              <input
+                type="url"
+                name="website"
+                id="website"
+                value={profile.website}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
-                    Availability
-                  </label>
-                  <input
-                    type="text"
-                    name="availability"
-                    id="availability"
-                    placeholder="e.g., Weekends 9am-5pm"
-                    value={profile.availability || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
+            <div>
+              <label htmlFor="play_style" className="block text-sm font-medium text-gray-700">
+                Play Style
+              </label>
+              <input
+                type="text"
+                name="play_style"
+                id="play_style"
+                value={profile.play_style}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="preferred_surface" className="block text-sm font-medium text-gray-700">
-                    Preferred Surface
-                  </label>
-                  <select
-                    id="preferred_surface"
-                    name="preferred_surface"
-                    value={profile.preferred_surface || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Select surface</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Clay">Clay</option>
-                    <option value="Grass">Grass</option>
-                  </select>
-                </div>
+            <div>
+              <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
+                Availability
+              </label>
+              <input
+                type="text"
+                name="availability"
+                id="availability"
+                value={profile.availability}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    rows={3}
-                    placeholder="Tell others about yourself..."
-                    value={profile.bio || ''}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
+            <div>
+              <label htmlFor="preferred_format" className="block text-sm font-medium text-gray-700">
+                Preferred Format
+              </label>
+              <input
+                type="text"
+                name="preferred_format"
+                id="preferred_format"
+                value={profile.preferred_format}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
 
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {loading ? 'Saving...' : 'Save Profile'}
-                  </button>
-                </div>
-              </form>
+            <div>
+              <label htmlFor="preferred_surface" className="block text-sm font-medium text-gray-700">
+                Preferred Surface
+              </label>
+              <input
+                type="text"
+                name="preferred_surface"
+                id="preferred_surface"
+                value={profile.preferred_surface}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="school" className="block text-sm font-medium text-gray-700">
+                School
+              </label>
+              <input
+                type="text"
+                name="school"
+                id="school"
+                value={profile.school}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t">
+              {hasUnsavedChanges && (
+                <span className="inline-flex items-center px-4 py-2 text-sm text-amber-600">
+                  You have unsaved changes
+                </span>
+              )}
+              <button
+                onClick={handleSave}
+                disabled={isSaving || !hasUnsavedChanges}
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                  hasUnsavedChanges
+                    ? 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </div>
         </div>

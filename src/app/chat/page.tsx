@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { supabase } from '@/lib/supabase-client';
+import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { supabase } from '@/lib/supabase';
 
 // Define types for our data
 interface Group {
@@ -33,6 +33,8 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroup, setNewGroup] = useState({ name: '', description: '' });
   const router = useRouter();
 
   // Fetch groups and posts
@@ -40,6 +42,25 @@ export default function ChatPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
+
+        // First check if user is authenticated
+        const { data: { session }, error: authError } = await supabase.auth.getSession();
+        if (authError) throw authError;
+        if (!session?.user) {
+          router.push('/login');
+          return;
+        }
+
+        // Fetch groups where user is a member
+        const { data: membershipData, error: membershipError } = await supabase
+          .from('group_memberships')
+          .select('group_id')
+          .eq('user_id', session.user.id);
+
+        if (membershipError) throw membershipError;
+
+        const memberGroupIds = membershipData?.map(m => m.group_id) || [];
         
         // Fetch groups
         const { data: groupsData, error: groupsError } = await supabase
@@ -48,85 +69,30 @@ export default function ChatPage() {
           .order('created_at', { ascending: false });
         
         if (groupsError) throw groupsError;
+
+        // Mark groups where user is a member
+        const groupsWithMembership = (groupsData || []).map(group => ({
+          ...group,
+          is_member: memberGroupIds.includes(group.id)
+        }));
         
-        // For demo purposes, if no groups exist, create some sample groups
-        if (!groupsData || groupsData.length === 0) {
-          const sampleGroups = [
-            {
-              id: '1',
-              name: 'NextServe',
-              description: 'The main group for all NextServe members',
-              created_at: new Date().toISOString(),
-              member_count: 4,
-              is_member: true
-            },
-            {
-              id: '2',
-              name: 'Jersey City Tennis',
-              description: 'Tennis enthusiasts in Jersey City',
-              created_at: new Date().toISOString(),
-              member_count: 12,
-              is_member: false
-            },
-            {
-              id: '3',
-              name: 'Beginner Players',
-              description: 'A group for tennis beginners to connect',
-              created_at: new Date().toISOString(),
-              member_count: 8,
-              is_member: true
-            }
-          ];
-          
-          setGroups(sampleGroups);
-        } else {
-          setGroups(groupsData);
-        }
+        setGroups(groupsWithMembership);
         
-        // Fetch posts for the first group
-        if (groupsData && groupsData.length > 0) {
-          const firstGroup = groupsData[0];
+        // If user is a member of any group, fetch posts for the first group they're a member of
+        const userGroups = groupsWithMembership.filter(g => g.is_member);
+        if (userGroups.length > 0) {
+          const firstGroup = userGroups[0];
           setSelectedGroup(firstGroup);
           
           const { data: postsData, error: postsError } = await supabase
             .from('posts')
-            .select('*, profiles:user_id(name, avatar_url)')
+            .select('*, profiles:user_id(full_name, avatar_url)')
             .eq('group_id', firstGroup.id)
             .order('created_at', { ascending: false });
           
           if (postsError) throw postsError;
           
-          // For demo purposes, if no posts exist, create some sample posts
-          if (!postsData || postsData.length === 0) {
-            const samplePosts = [
-              {
-                id: '1',
-                group_id: firstGroup.id,
-                user_id: 'user1',
-                content: 'Welcome to our group **NextServe Group**! A space for us to connect and share with each other. Start by posting your thoughts, sharing media, or creating a poll.',
-                created_at: new Date(Date.now() - 86400000 * 30).toISOString(), // 30 days ago
-                user_name: 'Arjun Dhavle'
-              },
-              {
-                id: '2',
-                group_id: firstGroup.id,
-                user_id: 'user2',
-                content: 'Hello everyone! Welcome to Nextserve!',
-                created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-                user_name: 'arjundhavle'
-              },
-              {
-                id: '3',
-                group_id: firstGroup.id,
-                user_id: 'user3',
-                content: 'Thank you! Excited to be here!',
-                created_at: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
-                user_name: '2028jbansal'
-              }
-            ];
-            
-            setPosts(samplePosts);
-          } else {
+          if (postsData) {
             // Transform the data to match our Post interface
             const transformedPosts = postsData.map(post => ({
               id: post.id,
@@ -134,11 +100,13 @@ export default function ChatPage() {
               user_id: post.user_id,
               content: post.content,
               created_at: post.created_at,
-              user_name: post.profiles?.name || 'Anonymous',
+              user_name: post.profiles?.full_name || 'Anonymous',
               user_avatar: post.profiles?.avatar_url
             }));
             
             setPosts(transformedPosts);
+          } else {
+            setPosts([]);
           }
         }
         
@@ -151,49 +119,66 @@ export default function ChatPage() {
     };
     
     fetchData();
-  }, []); // Remove supabase from dependencies
+  }, [router]);
 
   // Handle group selection
   const handleGroupSelect = async (group: Group) => {
     setSelectedGroup(group);
     setLoading(true);
+    setError(null);
     
     try {
-      const { data, error } = await supabase
+      if (!group.is_member) {
+        // Join the group
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          router.push('/login');
+          return;
+        }
+
+        const { error: joinError } = await supabase
+          .from('group_memberships')
+          .insert({
+            group_id: group.id,
+            user_id: session.user.id,
+            role: 'member'
+          });
+
+        if (joinError) throw joinError;
+
+        // Update local state to reflect membership
+        setGroups(prevGroups =>
+          prevGroups.map(g =>
+            g.id === group.id ? { ...g, is_member: true } : g
+          )
+        );
+        group.is_member = true;
+      }
+
+      // Fetch posts
+      const { data: postsData, error: postsError } = await supabase
         .from('posts')
-        .select('*, profiles:user_id(name, avatar_url)')
+        .select('*, profiles:user_id(full_name, avatar_url)')
         .eq('group_id', group.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (postsError) throw postsError;
       
-      // For demo purposes, if no posts exist, create some sample posts
-      if (!data || data.length === 0) {
-        const samplePosts = [
-          {
-            id: '1',
-            group_id: group.id,
-            user_id: 'user1',
-            content: `Welcome to the ${group.name} group!`,
-            created_at: new Date().toISOString(),
-            user_name: 'Admin'
-          }
-        ];
-        
-        setPosts(samplePosts);
-      } else {
+      if (postsData) {
         // Transform the data to match our Post interface
-        const transformedPosts = data.map(post => ({
+        const transformedPosts = postsData.map(post => ({
           id: post.id,
           group_id: post.group_id,
           user_id: post.user_id,
           content: post.content,
           created_at: post.created_at,
-          user_name: post.profiles?.name || 'Anonymous',
+          user_name: post.profiles?.full_name || 'Anonymous',
           user_avatar: post.profiles?.avatar_url
         }));
         
         setPosts(transformedPosts);
+      } else {
+        setPosts([]);
       }
       
       setLoading(false);
@@ -230,6 +215,81 @@ export default function ChatPage() {
     }
   };
 
+  // Handle creating a new group
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newGroup.name.trim()) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Get current user session
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
+      if (!session?.user) {
+        router.push('/login');
+        return;
+      }
+
+      // Create new group
+      const { data: groupData, error: groupError } = await supabase
+        .from('groups')
+        .insert([{
+          name: newGroup.name.trim(),
+          description: newGroup.description.trim(),
+          created_by: session.user.id,
+          member_count: 1
+        }])
+        .select()
+        .single();
+
+      if (groupError) {
+        console.error('Group creation error:', groupError);
+        throw groupError;
+      }
+
+      if (!groupData) {
+        throw new Error('No data returned from group creation');
+      }
+
+      // Add creator as member with admin role
+      const { error: membershipError } = await supabase
+        .from('group_memberships')
+        .insert([{
+          group_id: groupData.id,
+          user_id: session.user.id,
+          role: 'admin'
+        }]);
+
+      if (membershipError) {
+        console.error('Membership creation error:', membershipError);
+        throw membershipError;
+      }
+
+      // Add new group to state
+      const newGroupWithMembership = {
+        ...groupData,
+        is_member: true
+      };
+
+      setGroups(prevGroups => [newGroupWithMembership, ...prevGroups]);
+      setSelectedGroup(newGroupWithMembership);
+      setPosts([]);
+
+      // Reset form and close modal
+      setNewGroup({ name: '', description: '' });
+      setIsCreatingGroup(false);
+      
+    } catch (err) {
+      console.error('Error creating group:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create group');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter groups based on search query
   const filteredGroups = groups.filter(group => 
     group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -238,8 +298,71 @@ export default function ChatPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Groups</h1>
-      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Groups</h1>
+        <button
+          onClick={() => setIsCreatingGroup(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Create Group
+        </button>
+      </div>
+
+      {/* Create Group Modal */}
+      {isCreatingGroup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Create New Group</h2>
+            <form onSubmit={handleCreateGroup}>
+              <div className="mb-4">
+                <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Group Name
+                </label>
+                <input
+                  type="text"
+                  id="groupName"
+                  value={newGroup.name}
+                  onChange={(e) => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter group name"
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="groupDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="groupDescription"
+                  value={newGroup.description}
+                  onChange={(e) => setNewGroup(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="Enter group description"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingGroup(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newGroup.name.trim() || loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {loading ? 'Creating...' : 'Create Group'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Groups Sidebar */}
         <div className="md:col-span-1 bg-white rounded-lg shadow-md p-4">

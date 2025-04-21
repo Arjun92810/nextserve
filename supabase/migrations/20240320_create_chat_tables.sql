@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS groups (
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    created_by UUID REFERENCES auth.users(id) ON DELETE CASCADE
+    created_by UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    member_count INTEGER DEFAULT 1
 );
 
 -- Create group_memberships table
@@ -28,34 +29,49 @@ CREATE TABLE IF NOT EXISTS posts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Create RLS policies
+-- Enable RLS
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_memberships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 
 -- Groups policies
-CREATE POLICY "Users can view groups they are members of" ON groups
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM group_memberships
-            WHERE group_memberships.group_id = groups.id
-            AND group_memberships.user_id = auth.uid()
-        )
-    );
+CREATE POLICY "Anyone can view groups"
+    ON groups FOR SELECT
+    TO authenticated
+    USING (true);
 
-CREATE POLICY "Users can create groups" ON groups
-    FOR INSERT WITH CHECK (auth.uid() = created_by);
+CREATE POLICY "Authenticated users can create groups"
+    ON groups FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = created_by);
+
+CREATE POLICY "Group creators can update their groups"
+    ON groups FOR UPDATE
+    TO authenticated
+    USING (auth.uid() = created_by)
+    WITH CHECK (auth.uid() = created_by);
 
 -- Group memberships policies
-CREATE POLICY "Users can view their group memberships" ON group_memberships
-    FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Users can view all memberships"
+    ON group_memberships FOR SELECT
+    TO authenticated
+    USING (true);
 
-CREATE POLICY "Users can join groups" ON group_memberships
-    FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can join groups"
+    ON group_memberships FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can leave groups"
+    ON group_memberships FOR DELETE
+    TO authenticated
+    USING (auth.uid() = user_id);
 
 -- Posts policies
-CREATE POLICY "Users can view posts in their groups" ON posts
-    FOR SELECT USING (
+CREATE POLICY "Group members can view posts"
+    ON posts FOR SELECT
+    TO authenticated
+    USING (
         EXISTS (
             SELECT 1 FROM group_memberships
             WHERE group_memberships.group_id = posts.group_id
@@ -63,8 +79,10 @@ CREATE POLICY "Users can view posts in their groups" ON posts
         )
     );
 
-CREATE POLICY "Users can create posts in their groups" ON posts
-    FOR INSERT WITH CHECK (
+CREATE POLICY "Group members can create posts"
+    ON posts FOR INSERT
+    TO authenticated
+    WITH CHECK (
         EXISTS (
             SELECT 1 FROM group_memberships
             WHERE group_memberships.group_id = posts.group_id

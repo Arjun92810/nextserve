@@ -4,20 +4,31 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { supabase } from '../lib/supabase';
 
 const navigation = [
-  { name: 'Dashboard', href: '/' },
+  { name: 'Courts', href: '/courts' },
+  { name: 'Chat', href: '/chat' },
   { name: 'Profile', href: '/profile' },
 ];
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join('');
+  return classes.filter(Boolean).join(' ');
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -69,14 +80,40 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                href="/profile"
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'block w-full px-4 py-2 text-left text-sm text-gray-700 cursor-pointer'
+                                )}
+                              >
+                                Your Profile
+                              </Link>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <Link
+                                href="/settings"
+                                className={classNames(
+                                  active ? 'bg-gray-100' : '',
+                                  'block w-full px-4 py-2 text-left text-sm text-gray-700 cursor-pointer'
+                                )}
+                              >
+                                Settings
+                              </Link>
+                            )}
+                          </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
                               <button
-                                onClick={() => signOut()}
+                                onClick={handleLogout}
                                 className={classNames(
                                   active ? 'bg-gray-100' : '',
-                                  'block w-full px-4 py-2 text-left text-sm text-gray-700'
+                                  'block w-full px-4 py-2 text-left text-sm text-gray-700 cursor-pointer'
                                 )}
                               >
                                 Sign out
@@ -107,15 +144,67 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
             </div>
+
+            <Disclosure.Panel className="sm:hidden">
+              <div className="space-y-1 pb-3 pt-2">
+                {navigation.map((item) => (
+                  <Disclosure.Button
+                    key={item.name}
+                    as={Link}
+                    href={item.href}
+                    className={classNames(
+                      pathname === item.href
+                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800',
+                      'block border-l-4 py-2 pl-3 pr-4 text-base font-medium'
+                    )}
+                  >
+                    {item.name}
+                  </Disclosure.Button>
+                ))}
+              </div>
+              <div className="border-t border-gray-200 pb-3 pt-4">
+                {user ? (
+                  <div className="space-y-1">
+                    <Disclosure.Button
+                      as={Link}
+                      href="/profile"
+                      className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                    >
+                      Your Profile
+                    </Disclosure.Button>
+                    <Disclosure.Button
+                      as={Link}
+                      href="/settings"
+                      className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                    >
+                      Settings
+                    </Disclosure.Button>
+                    <Disclosure.Button
+                      as="button"
+                      onClick={handleLogout}
+                      className="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                    >
+                      Sign out
+                    </Disclosure.Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <Disclosure.Button
+                      as="button"
+                      onClick={() => router.push('/login')}
+                      className="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                    >
+                      Sign in
+                    </Disclosure.Button>
+                  </div>
+                )}
+              </div>
+            </Disclosure.Panel>
           </>
         )}
       </Disclosure>
-
-      <div className="py-10">
-        <main>
-          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">{children}</div>
-        </main>
-      </div>
+      <main>{children}</main>
     </div>
   );
 } 

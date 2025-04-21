@@ -17,7 +17,7 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -25,15 +25,18 @@ export default function LoginForm() {
       if (error) throw error;
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during login');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
@@ -42,7 +45,8 @@ export default function LoginForm() {
 
       if (error) throw error;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during Google login');
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoading(false);
     }
   };
 

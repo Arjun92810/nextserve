@@ -362,7 +362,7 @@ export default function ChatPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Groups</h1>
-        {user ? (
+        {user && (
           <button
             onClick={() => setIsCreatingGroup(true)}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -370,13 +370,6 @@ export default function ChatPage() {
             <PlusIcon className="h-5 w-5 mr-2" />
             Create Group
           </button>
-        ) : (
-          <Link
-            href="/login"
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Sign in to create groups
-          </Link>
         )}
       </div>
 

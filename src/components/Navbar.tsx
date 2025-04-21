@@ -6,8 +6,17 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Bars3Icon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import ClientOnly from './ClientOnly';
 
 export default function Navbar() {
+  return (
+    <ClientOnly>
+      <NavbarContent />
+    </ClientOnly>
+  );
+}
+
+function NavbarContent() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();

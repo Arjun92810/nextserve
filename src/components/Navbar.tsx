@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import ClientOnly from './ClientOnly';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import Image from 'next/image';
 
 export default function Navbar() {
   return (
@@ -40,11 +41,16 @@ function NavbarContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-2xl font-bold text-[#2d321c] hover:text-[#1a1e11] transition duration-300">
-                NextServe
-              </Link>
-            </div>
+            <Link href="/" className="flex items-center bg-white/0 px-3 rounded-lg my-2 hover:bg-white/15 transition-colors duration-300">
+              <Image
+                src="/brand.png"
+                alt="NextServe"
+                width={120}
+                height={40}
+                className="object-contain"
+                priority
+              />
+            </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 href="/partners"

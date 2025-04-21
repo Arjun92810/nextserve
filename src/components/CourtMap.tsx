@@ -25,7 +25,7 @@ import { FilterState } from '@/types/filters';
 // Dynamically import MapComponent to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
-  loading: () => <div className="h-[600px] bg-gray-100 animate-pulse" />
+  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse" />
 });
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -111,7 +111,7 @@ const CourtMap: FC<CourtMapProps> = ({ initialFilters, searchQuery = '' }) => {
   };
 
   if (loading) {
-    return <div className="h-[600px] bg-gray-100 animate-pulse" />;
+    return <div className="h-full min-h-[600px] w-full bg-gray-100 animate-pulse" />;
   }
 
   if (error) {
@@ -119,48 +119,52 @@ const CourtMap: FC<CourtMapProps> = ({ initialFilters, searchQuery = '' }) => {
   }
 
   return (
-    <div className="relative h-[600px]">
-      <MapComponent
-        courts={courts}
-        selectedCourt={selectedCourt}
-        onSelectCourt={handleSelectCourt}
-        filters={filters}
-      />
+    <div className="relative h-[calc(100vh-4rem)] w-full">
+      <div className="absolute inset-0">
+        <MapComponent
+          courts={courts}
+          selectedCourt={selectedCourt}
+          onSelectCourt={handleSelectCourt}
+          filters={filters}
+        />
+      </div>
       
       {/* Filters Toggle Button */}
-      <button 
-        onClick={toggleFilters}
-        className="absolute top-4 right-4 z-10 bg-white p-2 rounded-md shadow-md hover:bg-gray-100"
-        title={showFilters ? "Hide Filters" : "Show Filters"}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-        </svg>
-      </button>
-      
-      {/* Filters Overlay */}
-      {showFilters && (
-        <div className="absolute top-16 right-4 z-10 w-80 bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="p-4 bg-blue-600 text-white flex justify-between items-center">
-            <h3 className="font-bold">Filters</h3>
-            <button onClick={toggleFilters} className="text-white hover:text-gray-200">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
+      <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <button 
+          onClick={toggleFilters}
+          className="bg-white p-2 rounded-md shadow-md hover:bg-gray-100 transition-colors"
+          title={showFilters ? "Hide Filters" : "Show Filters"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </button>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="absolute top-12 right-0 w-80 bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="p-4 bg-blue-600 text-white flex justify-between items-center">
+              <h3 className="font-bold">Filters</h3>
+              <button onClick={toggleFilters} className="text-white hover:text-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
+              <CourtFilters 
+                filters={filters} 
+                onFilterChange={handleFilterChange} 
+              />
+            </div>
           </div>
-          <div className="p-4 max-h-[400px] overflow-y-auto">
-            <CourtFilters 
-              filters={filters} 
-              onFilterChange={handleFilterChange} 
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Court Details Panel */}
       {selectedCourt && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 bg-white shadow-lg">
+        <div className="absolute bottom-0 left-0 right-0 z-[1002] bg-white shadow-lg">
           <CourtDetailsPanel 
             court={selectedCourt} 
             onClose={handleCloseDetails}

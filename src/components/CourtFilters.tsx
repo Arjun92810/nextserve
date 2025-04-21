@@ -32,7 +32,7 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
     };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
         <input
@@ -40,17 +40,17 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
           value={filters.query}
           onChange={handleQueryChange}
           placeholder="Search courts..."
-          className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          className="w-full px-3 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Surface</label>
           <select
             value={filters.surface[0] || ''}
             onChange={handleSurfaceChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
           >
             <option value="">All Surfaces</option>
             <option value="hard">Hard</option>
@@ -64,7 +64,7 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
           <select
             value={filters.type[0] || ''}
             onChange={handleTypeChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
           >
             <option value="">All Types</option>
             <option value="public">Public</option>
@@ -79,7 +79,7 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
           <select
             value={filters.lighted === undefined ? '' : filters.lighted.toString()}
             onChange={handleBooleanChange('lighted')}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="w-full px-2 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
           >
             <option value="">All</option>
             <option value="true">Yes</option>
@@ -92,7 +92,7 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
           <select
             value={filters.indoor === undefined ? '' : filters.indoor.toString()}
             onChange={handleBooleanChange('indoor')}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="w-full px-2 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
           >
             <option value="">All</option>
             <option value="true">Yes</option>
@@ -105,7 +105,7 @@ const CourtFilters: FC<CourtFiltersProps> = ({ filters, onFilterChange }) => {
           <select
             value={filters.reservable === undefined ? '' : filters.reservable.toString()}
             onChange={handleBooleanChange('reservable')}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="w-full px-2 py-1.5 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
           >
             <option value="">All</option>
             <option value="true">Yes</option>

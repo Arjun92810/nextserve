@@ -25,7 +25,7 @@ export default function MapComponent({
   filters
 }: MapComponentProps) {
   return (
-    <div style={{ height: '400px', width: '100%' }}>
+    <div className="h-full w-full">
       <MapWithNoSSR 
         courts={courts}
         onCourtSelect={onSelectCourt}

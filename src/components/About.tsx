@@ -1,27 +1,49 @@
 'use client';
 
-import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function About() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            About NextServe
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            NextServe is revolutionizing how tennis enthusiasts connect with courts, coaches, and fellow players. 
-            Our platform makes it easy to find and book tennis courts, connect with qualified coaches, 
-            and meet players at your skill level.
-          </p>
-          <Link
-            href="/signup"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition"
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto"
+        >
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl font-bold text-gray-900 mb-8 text-center"
           >
-            Join Our Community
-          </Link>
-        </div>
+            About NextServe
+          </motion.h2>
+          <div className="space-y-6 text-lg text-gray-700">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="mb-6"
+            >
+              NextServe is revolutionizing the way tennis enthusiasts in North Jersey access courts, 
+              connect with fellow players, and enhance their skills through coaching options. Our platform 
+              aims to build a strong community of players, increase court availability, and offer coaching 
+              services to elevate the overall tennis experience.
+            </motion.p>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              At NextServe, we are dedicated to providing a seamless tennis experience by offering a 
+              user-friendly platform that simplifies court reservations, player networking, and coaching 
+              arrangements. Our goal is to ensure every tennis enthusiast has the opportunity to enjoy 
+              the sport to the fullest.
+            </motion.p>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

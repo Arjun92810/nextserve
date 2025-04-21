@@ -2,48 +2,63 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function Hero() {
   return (
-    <section className="relative h-screen w-full">
+    <section className="relative h-screen w-full font-['Helvetica_Neue',sans-serif]">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
           src="/hero-tennis.jpg"
           alt="Tennis court background"
           fill
-          className="object-cover"
+          className="object-cover brightness-75"
           priority
-          quality={90}
+          quality={100}
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-              Find Your Perfect Court
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8">
-              Discover and book tennis courts near you. Join the NextServe community today.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                href="/court"
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition"
-              >
-                Find Courts
-              </Link>
+        <div className="container mx-auto px-6 md:px-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl"
+          >
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-6xl md:text-8xl font-extrabold text-white mb-8 leading-tight tracking-tight"
+            >
+              Ace Your Game Here
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-2xl md:text-3xl text-white/90 mb-12 font-light tracking-wide"
+            >
+              Play More, Connect More, Grow Together.
+            </motion.p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-wrap gap-6"
+            >
               <Link
                 href="/signup"
-                className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-100 transition"
+                className="bg-[#0077CC] text-white px-12 py-4 rounded-full text-xl font-medium hover:bg-[#0066B3] transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Get Started
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

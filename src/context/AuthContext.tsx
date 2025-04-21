@@ -21,19 +21,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check active sessions and sets the user
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-
-      // Listen for changes on auth state
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
         setUser(session?.user ?? null);
-      });
-
-      return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error('Error getting session:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getSession();
+
+    // Listen for changes on auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

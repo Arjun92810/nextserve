@@ -1,6 +1,0 @@
-{
-    "buildCommand": "npm install --legacy-peer-deps && npm run build",
-    "ignoreCommand": "echo 'override default'",
-    "installCommand": "npm install --legacy-peer-deps"
-  }
-  

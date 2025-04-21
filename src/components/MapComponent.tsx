@@ -29,6 +29,7 @@ export default function MapComponent({
       <MapWithNoSSR 
         courts={courts}
         onCourtSelect={onSelectCourt}
+        filters={filters}
       />
     </div>
   );

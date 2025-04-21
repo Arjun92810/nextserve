@@ -1,0 +1,10 @@
+.git
+node_modules
+.next
+src/nextserve copy.zip
+src/nextserve-original
+*.zip
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 

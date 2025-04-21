@@ -218,242 +218,133 @@ Think of APIs as the club's communication system:
 - They ensure communication happens in a structured, secure way
 - They make it possible for different technologies to work together
 
-#### Our API Architecture
-In NextServe, we use several types of APIs:
-
-1. **REST APIs: Our Club's Information Desk**
-   These are like the club's information desk, handling specific requests:
-   - Getting court availability: `GET /api/courts/availability`
-   - Creating a booking: `POST /api/bookings`
-   - Updating user profiles: `PUT /api/users/profile`
-   - Fetching match history: `GET /api/matches/history`
-
-   For example, when a user checks court availability:
-   ```typescript
-   // Frontend makes a request
-   const response = await fetch('/api/courts/availability', {
-     method: 'GET',
-     headers: { 'Content-Type': 'application/json' }
-   });
-   
-   // Backend processes the request
-   export default async function handler(req, res) {
-     const availability = await getCourtAvailability();
-     res.status(200).json(availability);
-   }
-   ```
-
-2. **Real-time APIs: Our Live Scoreboard**
-   These are like the club's live scoreboard system:
-   - Instant court availability updates
-   - Live chat between players
-   - Real-time match notifications
-   - Immediate booking confirmations
-
-   For example, our real-time court updates:
-   ```typescript
-   // Subscribe to court updates
-   const subscription = supabase
-     .from('courts')
-     .on('UPDATE', (payload) => {
-       updateCourtAvailability(payload.new);
-     })
-     .subscribe();
-   ```
-
-3. **External APIs: Our Club's Partnerships**
-   These are like the club's partnerships with other facilities:
-   - Google Maps API for court locations
-   - Payment processing APIs for bookings
-   - Email service APIs for notifications
-   - Weather APIs for outdoor court conditions
-
-   For example, integrating with Google Maps:
-   ```typescript
-   // Fetch court location data
-   const getCourtLocation = async (address) => {
-     const response = await fetch(
-       `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${API_KEY}`
-     );
-     return response.json();
-   };
-   ```
+#### Types of APIs We Use
+1. **REST APIs**: Like the club's information desk, handling standard requests for data and actions
+2. **Real-time APIs**: Like the club's live scoreboard, providing instant updates
+3. **External APIs**: Like the club's partnerships with other facilities, connecting with external services
 
 #### Why APIs are Critical
 APIs are essential to our architecture because they:
+- Enable different parts of our system to work together
+- Ensure secure and structured communication
+- Allow for easy integration with external services
+- Support real-time updates and notifications
 
-1. **Enable Separation of Concerns**
-   - Frontend can focus on user experience
-   - Backend can focus on data and business logic
-   - Each service can be developed and scaled independently
-   - Like having specialized staff for different areas of the club
-
-2. **Ensure Security**
-   - Control access to sensitive data
-   - Validate all requests
-   - Protect against unauthorized access
-   - Like having security checkpoints throughout the club
-
-3. **Enable Scalability**
-   - Handle increased traffic efficiently
-   - Distribute load across servers
-   - Add new features without disrupting existing ones
-   - Like being able to add new courts without affecting existing ones
-
-4. **Facilitate Integration**
-   - Connect with external services
-   - Share data between different parts of the application
-   - Enable third-party integrations
-   - Like having partnerships with other tennis clubs
-
-For example, when a user books a court, multiple APIs work together:
-1. The frontend calls our booking API
-2. Our API validates the request
-3. It checks availability through our database API
-4. It processes payment through a payment API
-5. It sends confirmation through an email API
-6. It updates the real-time availability through our WebSocket API
-
-This orchestration of different APIs is like having a well-coordinated team at the tennis club, each handling their specific responsibilities while working together seamlessly.
+For a detailed look at our API architecture, including endpoints, security, and implementation details, see our [API Documentation](docs/API_ARCHITECTURE.md).
 
 ### Architecture and System Design: The Blueprint of Our Tennis Club
+*Think of this as the Computer Science and Software Engineering major of our tennis club*
 
 #### What is Architecture?
-Think of architecture as the master blueprint of our tennis club. Just as an architect plans how different rooms connect, where the courts are placed, and how people flow through the space, software architecture defines how different parts of our application connect and work together.
+Think of architecture as the master blueprint of our tennis club. Just as an architect plans how different rooms connect, where the courts are placed, and how people flow through the space, software architecture defines how different parts of our application connect and work together. This is similar to how:
+
+- **Computer Science** students study the fundamental principles of computing
+- **Software Engineering** majors learn to design and build complex systems
+- **Information Technology** students focus on implementing and managing systems
+- **Computer Engineering** majors work on the hardware-software interface
 
 #### Our System Design
-NextServe follows a modern, scalable architecture that we can think of as a well-designed tennis club:
+NextServe follows a modern, scalable architecture that we can think of as a well-designed tennis club. Each layer represents different aspects of computer science and software engineering:
 
 1. **Frontend Layer: The Club's Reception Area**
    - Next.js for the main application
    - React components for UI elements
    - Tailwind CSS for styling
    - Like the welcoming entrance and reception area of a tennis club
+   - *Related to: UI/UX Design, Human-Computer Interaction, Web Development*
 
 2. **API Layer: The Club's Communication Hub**
    - REST APIs for standard requests
    - WebSocket connections for real-time updates
    - API Gateway for request routing
    - Like the club's central communication system
+   - *Related to: Network Programming, Distributed Systems, API Design*
 
 3. **Backend Layer: The Club's Operations Center**
    - Node.js server for processing
    - Next.js API routes for handling requests
    - Business logic and data validation
    - Like the club's management office
+   - *Related to: Server-Side Programming, Business Logic, Data Processing*
 
 4. **Database Layer: The Club's Records Room**
    - Supabase for data storage
    - Real-time subscriptions
    - User authentication
    - Like the club's filing system and membership records
+   - *Related to: Database Management, Data Structures, Information Systems*
 
 #### Design Patterns We Use
+These are like the core courses in a Computer Science degree:
 
 1. **Microservices Architecture**
    - Separate services for different features
    - Independent scaling and deployment
-   - Like having specialized departments in the club:
-     - Booking service for court reservations
-     - User service for member management
-     - Payment service for transactions
-     - Notification service for alerts
+   - Like having specialized departments in the club
+   - *Related to: Distributed Systems, Cloud Computing, System Architecture*
 
 2. **Event-Driven Design**
    - Real-time updates for court availability
    - Instant notifications for bookings
-   - Like the club's announcement system:
-     ```typescript
-     // Example of event-driven court updates
-     const handleCourtBooking = async (booking) => {
-       // Update court availability
-       await updateCourtStatus(booking.courtId);
-       // Notify other users
-       emitCourtUpdate(booking.courtId);
-       // Send confirmation
-       sendBookingConfirmation(booking);
-     };
-     ```
+   - Like the club's announcement system
+   - *Related to: Event Programming, Asynchronous Systems, Real-time Computing*
 
 3. **Caching Strategy**
    - Redis for session management
    - Browser caching for static assets
-   - Like having quick-access storage for frequently used items:
-     ```typescript
-     // Example of caching court data
-     const getCourtData = async (courtId) => {
-       // Check cache first
-       const cached = await redis.get(`court:${courtId}`);
-       if (cached) return JSON.parse(cached);
-       
-       // Fetch from database if not cached
-       const court = await db.courts.findUnique({ id: courtId });
-       // Store in cache
-       await redis.set(`court:${courtId}`, JSON.stringify(court));
-       return court;
-     };
-     ```
+   - Like having quick-access storage for frequently used items
+   - *Related to: Performance Optimization, Memory Management, System Efficiency*
 
 #### Scalability Considerations
+This is like the advanced courses in Software Engineering:
 
 1. **Horizontal Scaling**
    - Multiple server instances
    - Load balancing
-   - Like having multiple courts to handle more players:
-     ```typescript
-     // Example of load-balanced API route
-     export default async function handler(req, res) {
-       // Request can be handled by any server instance
-       const result = await processRequest(req);
-       res.status(200).json(result);
-     };
-     ```
+   - Like having multiple courts to handle more players
+   - *Related to: Cloud Computing, Distributed Systems, System Performance*
 
 2. **Database Scaling**
    - Read replicas for heavy traffic
    - Connection pooling
    - Like having multiple record-keepers for busy periods
+   - *Related to: Database Administration, Data Management, System Architecture*
 
 3. **Performance Optimization**
    - CDN for static assets
    - Image optimization
    - Like having efficient pathways throughout the club
+   - *Related to: Performance Engineering, Optimization Techniques, System Efficiency*
 
 #### Security Architecture
+This connects to Cybersecurity and Information Security majors:
 
 1. **Authentication Flow**
    - JWT tokens for sessions
    - OAuth for social login
-   - Like having secure membership cards:
-     ```typescript
-     // Example of secure authentication
-     const authenticateUser = async (credentials) => {
-       // Verify credentials
-       const user = await verifyCredentials(credentials);
-       // Generate secure token
-       const token = generateJWT(user);
-       // Set secure cookie
-       setSecureCookie(token);
-       return user;
-     };
-     ```
+   - Like having secure membership cards
+   - *Related to: Security Protocols, Authentication Systems, Cryptography*
 
 2. **Data Protection**
    - Encryption at rest
    - Secure communication (HTTPS)
    - Like having secure storage for valuable items
+   - *Related to: Information Security, Data Protection, Security Engineering*
 
 #### Monitoring and Maintenance
+This relates to System Administration and DevOps:
 
 1. **Health Checks**
    - Service monitoring
    - Performance metrics
    - Like regular facility inspections
+   - *Related to: System Administration, DevOps, Infrastructure Management*
 
 2. **Error Handling**
    - Graceful degradation
    - Fallback mechanisms
    - Like having backup systems for critical operations
+   - *Related to: Error Handling, System Reliability, Fault Tolerance*
 
 This architecture ensures that NextServe can:
 - Handle growing user numbers
@@ -463,6 +354,8 @@ This architecture ensures that NextServe can:
 - Scale efficiently
 
 Just as a well-designed tennis club can accommodate more players and add new facilities without disrupting existing operations, our architecture allows NextServe to grow and evolve while maintaining smooth operation for all users.
+
+*These concepts form the foundation of modern software development and are central to many computer science and engineering programs. Understanding them early can help you choose the right college major and career path in technology.*
 
 ### Next.js: The Smart Building System
 While React gave us our building blocks, we needed something more to make our website fast and efficient. That's where Next.js came in. Think of Next.js as a smart building system that:

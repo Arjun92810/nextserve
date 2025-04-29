@@ -39,13 +39,16 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/profile`
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/profile`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
-
       if (error) throw error;
     } catch (err: any) {
       setError(err.message);

@@ -38,11 +38,12 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
+    const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nextserve.club';
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/profile`,
+          redirectTo: `${redirectUrl}/profile`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'

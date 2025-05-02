@@ -22,7 +22,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/profile`
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/profile`
         }
       });
 
@@ -38,12 +38,11 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
-    const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nextserve.club';
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${redirectUrl}/profile`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/profile`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'

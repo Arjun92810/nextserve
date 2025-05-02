@@ -39,10 +39,13 @@ export default function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
       });
-
       if (error) throw error;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

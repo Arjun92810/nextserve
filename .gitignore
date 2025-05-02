@@ -66,3 +66,5 @@ logs
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+NEXT_PUBLIC_SITE_URL=https://nextserve.club

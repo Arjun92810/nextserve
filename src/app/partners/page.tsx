@@ -82,7 +82,7 @@ export default function PartnersPage() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            Tennis Partners
+            Our Members
           </h1>
           <p className="mt-3 text-xl text-gray-500 sm:mt-4">
             Find your perfect tennis partner in Jersey City

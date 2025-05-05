@@ -60,7 +60,7 @@ function NavbarContent() {
                     : 'border-transparent text-[#2d321c]/80 hover:border-[#2d321c]/60 hover:text-[#2d321c]'
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition duration-300`}
               >
-                Partner
+                Members
               </Link>
               <Link
                 href="/coach"

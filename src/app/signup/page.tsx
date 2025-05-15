@@ -39,7 +39,8 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Starting Google OAuth...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/profile`,
@@ -49,8 +50,15 @@ export default function SignUpPage() {
           }
         }
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('OAuth Error:', error);
+        throw error;
+      }
+      
+      console.log('OAuth Response:', data);
     } catch (err: any) {
+      console.error('Full Error:', err);
       setError(err.message);
     }
   };

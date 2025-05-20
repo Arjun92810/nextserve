@@ -18,19 +18,29 @@ export default function SignUpPage() {
     setError(null);
 
     try {
+      // Get the current site URL
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nextserve.club';
+      console.log('Using site URL:', siteUrl);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/profile`
+          emailRedirectTo: `${siteUrl}/profile`,
+          data: {
+            email: email,
+          }
         }
       });
 
       if (error) throw error;
 
-      alert('Check your email for the confirmation link!');
-      router.push('/login');
+      if (data?.user) {
+        alert('Check your email for the confirmation link!');
+        router.push('/login');
+      }
     } catch (err: any) {
+      console.error('Signup error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -39,11 +49,14 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      console.log('Starting Google OAuth...');
+      // Get the current site URL
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nextserve.club';
+      console.log('Using site URL for Google OAuth:', siteUrl);
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/profile`,
+          redirectTo: `${siteUrl}/profile`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'

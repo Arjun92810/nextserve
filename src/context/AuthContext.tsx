@@ -53,6 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(currentSession?.user ?? null);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          // Clear any cached data
+          localStorage.removeItem('supabase.auth.token');
         } else {
           setUser(session?.user ?? null);
         }
@@ -68,11 +70,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      console.log('Context signOut called');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear user state
       setUser(null);
+      
+      // Clear any cached data
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Force a session refresh
+      await supabase.auth.getSession();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error in context signOut:', error);
       throw error;
     }
   };

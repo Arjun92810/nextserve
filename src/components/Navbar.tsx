@@ -29,10 +29,20 @@ function NavbarContent() {
 
   const handleSignOut = async () => {
     try {
+      console.log('Starting sign out...');
+      // First sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Then call the context signOut to update the UI state
       await signOut();
-      router.push('/');
+      
+      // Force a hard refresh to clear any cached state
+      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
+      // If there's an error, still try to redirect to home
+      window.location.href = '/';
     }
   };
 

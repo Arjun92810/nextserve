@@ -37,8 +37,16 @@ function NavbarContent() {
       // Then call the context signOut to update the UI state
       await signOut();
       
-      // Force a hard refresh to clear any cached state
-      window.location.href = '/';
+      // Get the current domain
+      const domain = window.location.hostname;
+      const protocol = window.location.protocol;
+      
+      // Redirect to the appropriate URL
+      if (domain === 'nextserve.club') {
+        window.location.href = `${protocol}//${domain}`;
+      } else {
+        router.push('/');
+      }
     } catch (error) {
       console.error('Error signing out:', error);
       // If there's an error, still try to redirect to home

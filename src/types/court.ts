@@ -5,6 +5,7 @@ export interface Court {
   name: string;
   lat: number;
   lng: number;
+  city?: string;
   description?: string;
   surface?: string;
   type?: string;
